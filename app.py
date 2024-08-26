@@ -17,7 +17,7 @@ import requests
 from io import StringIO
 
 # URL of the CSV file
-url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
+url = "placekeys_standardized%20copy%207.csv"
 
 # Make a request to get the CSV file
 response = requests.get(url)
