@@ -17,7 +17,7 @@ import requests
 from io import StringIO
 
 # URL of the CSV file
-url = "placekeys_standardized%20copy%207.csv"
+url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
 
 # Make a request to get the CSV file
 response = requests.get(url)
@@ -31,10 +31,7 @@ else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
 placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
 
-
-placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
-
-REI_local_path = '/Users/ahmedabdallah/Downloads/DE_DUPPING PROJECT/REI Sift-All data-08262024_standardized+placekeys.csv'
+REI_local_path = 'REI Sift-All data-08262024_standardized+placekeys.csv'
 rei = pd.read_csv(REI_local_path)
 
 # Initialize Placekey API
