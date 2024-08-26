@@ -13,9 +13,27 @@ import io
 import json
 from placekey.api import PlacekeyAPI
 from io import StringIO
+import requests
+from io import StringIO
+
+# URL of the CSV file
+url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
+
+# Make a request to get the CSV file
+response = requests.get(url)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Read the CSV content using pandas
+    cache_file_path = StringIO(response.text)
+
+else:
+    print(f"Failed to retrieve the file. Status code: {response.status_code}")
+placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
+
 
 placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
-cache_file_path = 'placekeys_standardized copy 7.csv'
+
 REI_local_path = '/Users/ahmedabdallah/Downloads/DE_DUPPING PROJECT/REI Sift-All data-08262024_standardized+placekeys.csv'
 rei = pd.read_csv(REI_local_path)
 
