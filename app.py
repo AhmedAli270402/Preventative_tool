@@ -29,7 +29,7 @@ if response.status_code == 200:
 
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
-placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
+placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
 
 REI_local_path = 'REI Sift-All data-08262024_standardized+placekeys.csv'
 rei = pd.read_csv(REI_local_path)
