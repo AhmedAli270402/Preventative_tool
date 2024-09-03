@@ -29,9 +29,20 @@ if response.status_code == 200:
 
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
+url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08262024_standardized+placekeys.csv"
+
+# Make a request to get the CSV file
+response = requests.get(url)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Read the CSV content using pandas
+    REI_local_path = StringIO(response.text)
+
+else:
+    print(f"Failed to retrieve the file. Status code: {response.status_code}")    
 placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
 
-REI_local_path = 'REI Sift-All data-08262024_standardized+placekeys.csv'
 rei = pd.read_csv(REI_local_path)
 
 # Initialize Placekey API
