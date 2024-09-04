@@ -13,10 +13,8 @@ import io
 import json
 from placekey.api import PlacekeyAPI
 from io import StringIO
-import requests
-from io import StringIO
 
-# URL of the CSV file
+placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
 url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
 
 # Make a request to get the CSV file
@@ -29,21 +27,26 @@ if response.status_code == 200:
 
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
-brl = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08262024_standardized+placekeys.csv"
-responses = requests.get(brl)
+zrl = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08262024_standardized+placekeys.csv"
+
+# Make a request to get the CSV file
+req = requests.get(zrl)
 
 # Check if the request was successful
+if req.status_code == 200:
+    # Read the CSV content using pandas
+    REI_local_path = StringIO(req.text)
 
-REI_local_path = StringIO(responses.text)
-
-placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
+else:
+    print(f"Failed to retrieve the file. Status code: {response.status_code}")
+rei = pd.read_csv(REI_local_path)
 
 # Initialize Placekey API
 pk_api = PlacekeyAPI(placekey_api_key)
 
 # Load the main CSV file
-rei = pd.read_csv(REI_local_path)
-st.write(rei.head(10))
+
+
 # Load the cache file and drop duplicates
 cache_df = pd.read_csv(cache_file_path, dtype={
     'street_address': str,
