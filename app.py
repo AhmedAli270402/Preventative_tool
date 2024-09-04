@@ -33,12 +33,9 @@ brl = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08
 responses = requests.get(brl)
 
 # Check if the request was successful
-if responses.status_code == 200:
-    # Read the CSV content using pandas
-    REI_local_path = StringIO(responses.text)
-    
-else:
-    print(f"Failed to retrieve the file. Status code: {responses.status_code}")
+
+REI_local_path = StringIO(responses.text)
+
 placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
 
 # Initialize Placekey API
