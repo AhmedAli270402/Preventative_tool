@@ -39,7 +39,14 @@ if req.status_code == 200:
 
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
-rei = pd.read_csv(REI_local_path)
+rei = pd.read_csv(REI_local_path, dtype={
+    'street_address': str,
+    'placekey': str,
+    'city': str,
+    'region': str,
+    'postal_code': str,
+    'Parcel number': str
+})
 
 # Initialize Placekey API
 pk_api = PlacekeyAPI(placekey_api_key)
