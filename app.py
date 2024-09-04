@@ -903,7 +903,7 @@ if uploaded_file is not None:
             frames = [new_records, rei]
             rei = pd.concat(frames).drop_duplicates(subset=['street_address', 'city'],
                                                          keep='first')
-            rei.to_csv(REI_local_path,index=False)
+            rei.to_csv(REI_local,index=False)
             df_final_filtered.rename(columns={'street_address': 'Property Address',
                                                'city': 'Property City',
                                                'region': 'Property State',
