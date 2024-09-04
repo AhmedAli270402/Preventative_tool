@@ -17,22 +17,26 @@ from io import StringIO
 placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
 url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
 zrl = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08262024_standardized+placekeys.csv"
-# Make a request to get the second CSV file
-req = requests.get(zrl)
-if req.status_code == 200:
-    # Read the CSV content using pandas
-    REI_local_path = StringIO(req.text)
-else:
-    print(f"Failed to retrieve the file. Status code: {req.status_code}")
+
 # Make a request to get the first CSV file
 response = requests.get(url)
 if response.status_code == 200:
     # Read the CSV content using pandas
     cache_file_path = StringIO(response.text)
 else:
-    print(f"Failed to retrieve the file. Status code: {response.status_code}")
+    raise Exception(f"Failed to retrieve the file. Status code: {response.status_code}")
 
+# Make a request to get the second CSV file
+req = requests.get(zrl)
+if req.status_code == 200:
+    # Read the CSV content using pandas
+    REI_local_path = StringIO(req.text)
+else:
+    raise Exception(f"Failed to retrieve the file. Status code: {req.status_code}")
 
+# Debugging: Check if REI_local_path is correctly assigned
+if 'REI_local_path' not in locals():
+    raise Exception("REI_local_path is not defined. Something went wrong with the CSV retrieval.")
 
 # Load the REI data into a DataFrame
 rei = pd.read_csv(REI_local_path, dtype={
@@ -44,7 +48,7 @@ rei = pd.read_csv(REI_local_path, dtype={
     'Parcel number': str
 })
 
-# Initialize Placekey API (assuming you have defined or imported PlacekeyAPI)
+# Initialize Placekey API
 pk_api = PlacekeyAPI(placekey_api_key)
 
 # Load the cache file and drop duplicates
