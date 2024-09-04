@@ -37,13 +37,13 @@ responses = requests.get(brl)
 # Check if the request was successful
 if responses.status_code == 200:
     # Read the CSV content using pandas
-    REI_local_path = StringIO(responses.text)
+    REI_local = StringIO(responses.text)
 
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")    
 placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
 
-rei = pd.read_csv(REI_local_path)
+rei = pd.read_csv(REI_local)
 
 # Initialize Placekey API
 pk_api = PlacekeyAPI(placekey_api_key)
