@@ -17,7 +17,13 @@ from io import StringIO
 placekey_api_key = "3evKPNQovEe3AGAANqXiMr9eNp4B38Fh"
 url = "https://placekey.nyc3.cdn.digitaloceanspaces.com/placekeys_standardized%20copy%207.csv"
 zrl = "https://placekey.nyc3.cdn.digitaloceanspaces.com/REI%20Sift-All%20data-08262024_standardized+placekeys.csv"
-
+# Make a request to get the second CSV file
+req = requests.get(zrl)
+if req.status_code == 200:
+    # Read the CSV content using pandas
+    REI_local_path = StringIO(req.text)
+else:
+    print(f"Failed to retrieve the file. Status code: {req.status_code}")
 # Make a request to get the first CSV file
 response = requests.get(url)
 if response.status_code == 200:
@@ -26,13 +32,7 @@ if response.status_code == 200:
 else:
     print(f"Failed to retrieve the file. Status code: {response.status_code}")
 
-# Make a request to get the second CSV file
-req = requests.get(zrl)
-if req.status_code == 200:
-    # Read the CSV content using pandas
-    REI_local_path = StringIO(req.text)
-else:
-    print(f"Failed to retrieve the file. Status code: {req.status_code}")
+
 
 # Load the REI data into a DataFrame
 rei = pd.read_csv(REI_local_path, dtype={
