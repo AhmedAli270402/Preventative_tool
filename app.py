@@ -35,8 +35,8 @@ responses = requests.get(brl)
 # Check if the request was successful
 if responses.status_code == 200:
     # Read the CSV content using pandas
-    REI_local = StringIO(responses.text)
-    rei = pd.read_csv(REI_local)
+    REI_local_path = StringIO(responses.text)
+    rei = pd.read_csv(REI_local_path)
 else:
     print(f"Failed to retrieve the file. Status code: {responses.status_code}")
 placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
@@ -903,7 +903,7 @@ if uploaded_file is not None:
             frames = [new_records, rei]
             rei = pd.concat(frames).drop_duplicates(subset=['street_address', 'city'],
                                                          keep='first')
-            rei.to_csv(REI_local,index=False)
+            rei.to_csv(REI_local_path,index=False)
             df_final_filtered.rename(columns={'street_address': 'Property Address',
                                                'city': 'Property City',
                                                'region': 'Property State',
