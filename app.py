@@ -36,7 +36,7 @@ responses = requests.get(brl)
 if responses.status_code == 200:
     # Read the CSV content using pandas
     REI_local_path = StringIO(responses.text)
-    rei = pd.read_csv(REI_local_path)
+    
 else:
     print(f"Failed to retrieve the file. Status code: {responses.status_code}")
 placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
@@ -45,7 +45,7 @@ placekey_api_key = "335Ne7nwV1AK56mEnHmzWN9tqZQ5gB3j"
 pk_api = PlacekeyAPI(placekey_api_key)
 
 # Load the main CSV file
-
+rei = pd.read_csv(REI_local_path)
 
 # Load the cache file and drop duplicates
 cache_df = pd.read_csv(cache_file_path, dtype={
