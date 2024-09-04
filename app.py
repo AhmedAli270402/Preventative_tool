@@ -43,7 +43,7 @@ pk_api = PlacekeyAPI(placekey_api_key)
 
 # Load the main CSV file
 rei = pd.read_csv(REI_local_path)
-
+st.write(rei.head(10)
 # Load the cache file and drop duplicates
 cache_df = pd.read_csv(cache_file_path, dtype={
     'street_address': str,
