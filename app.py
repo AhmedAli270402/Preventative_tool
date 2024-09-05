@@ -927,5 +927,199 @@ if uploaded_file is not None:
                 - After downloading, you can manually move the file to your desired location.
                 - To move the file, use your file explorer and drag the downloaded file to the preferred folder.
             """)
+        if st.button("Fix tag and Standardize"):
+            df.rename(columns={'Number Quality Score 3': 'Phone 3 Tag',
+                                               'Number Quality Score 2': 'Phone 2 tag',
+                                               'Number Quality Score 1': 'Phone 1 Tag',
+                                               }, inplace=True)
+
+            
+            # Apply the functions to the addresses
+            if mapped_columns.get('property_address') != 'none':
+                property_address_col = mapped_columns['property_address']
+                df[property_address_col].fillna('', inplace=True)
+                df[property_address_col] = df[property_address_col].apply(preprocess_address)
+                df[property_address_col] = df[property_address_col].apply(standardize_and_normalize_address)
+
+            if mapped_columns.get('mailing_address') != 'none':
+                mailing_address_col = mapped_columns['mailing_address']
+                df[mailing_address_col].fillna('', inplace=True)
+                df[mailing_address_col] = df[mailing_address_col].apply(standardize_and_normalize_address)
+
+            # Adjust cities
+            df = adjust_cities(df, mapped_columns)
+
+            # Convert relevant columns to title case if they exist
+            for key in ['full_name', 'first_name', 'last_name']:
+                if key in mapped_columns and mapped_columns[key] != 'none':
+                    df[mapped_columns[key]] = df[mapped_columns[key]].apply(to_title_case)
+
+            st.write("Addresses Normalized and Names Converted to Name Case Successfully")
+            st.write(df.head())
+            if 'Parcel number' in df.columns:
+                parcel_hits_df = df.dropna(subset=['Parcel number'])
+                non_parcel_hits_df = df[~df.index.isin(parcel_hits_df.index)]
+                print("Processing non-parcel hits")
+
+                # Update records in parcel_hits_df from cache based on Parcel number
+                parcel_hits_df = update_records_from_cache(parcel_hits_df, rei)
+
+                # Phase 2: Process remaining records without Parcel numbers
+
+            else:
+                # If 'Parcel number' column doesn't exist, treat all records as non-parcel hits
+                non_parcel_hits_df = df.copy()
+
+            # Phase 2: Process remaining records without Parcel numbers
+            property_columns = {
+                'property_address': mapped_columns['property_address'],
+                'property_city': mapped_columns['property_city'],
+                'property_state': mapped_columns['property_state'],
+                'property_zip': mapped_columns['property_zip']
+            }
+
+
+            non_parcel_hits_df['id_num'] = non_parcel_hits_df.index.astype(str)
+            non_parcel_hits_df['iso_country_code'] = 'us'
+
+            column_map = {
+                'id_num': 'query_id',
+                property_columns['property_address']: 'street_address',
+                property_columns['property_city']: 'city',
+                property_columns['property_state']: 'region',
+                property_columns['property_zip']: 'postal_code',
+                'iso_country_code': 'iso_country_code'
+            }
+
+            # Define the expected columns
+            expected_columns = {'query_id', 'region', 'location_name', 'city', 'iso_country_code', 'place_metadata',
+                                'street_address', 'latitude', 'longitude', 'postal_code'}
+
+            # Step 1: Rename columns as per the provided mapping
+            df_place = non_parcel_hits_df.rename(columns=column_map)
+            if property_columns['property_address'] != 'none':
+                non_parcel_hits_df.rename(columns={property_columns['property_address']: 'street_address',
+                                   property_columns['property_city']: 'city',
+                                    property_columns['property_state']:'region',
+                                    property_columns['property_zip']:'postal_code'}, inplace=True)
+
+            # Step 2: Ensure that only the expected columns are included
+            df_place = df_place[[col for col in expected_columns if col in df_place.columns]]
+
+            # Step 3: Handle duplicate columns (if any)
+            df_place = handle_duplicate_columns(df_place)
+
+            # Step 4: Validate columns - Check for missing or extra columns
+            missing_columns = expected_columns - set(df_place.columns)
+            extra_columns = set(df_place.columns) - expected_columns
+
+            if missing_columns:
+                print(f"Missing columns: {missing_columns}")
+            if extra_columns:
+                print(f"Extra columns: {extra_columns}")
+                # Optionally, remove extra columns if found
+                df_place = df_place.drop(columns=list(extra_columns))
+
+            # Step 5: Convert to JSON
+            data_jsoned = json.loads(df_place.to_json(orient='records'))
+
+            # Provide a text input for the user to specify the file name
+            file_name, file_extension = os.path.splitext(uploaded_file.name)
+            output_file_name = f"{file_name}_Tagged and standardized.csv"
+
+            # Separate cached responses and new API requests
+            cached_responses, api_requests = check_cache(data_jsoned, cache_df)
+
+            # Proceed with Placekey API lookup for uncached addresses
+            if api_requests:
+                print("Starting Placekey API lookup...")
+                responses = pk_api.lookup_placekeys(api_requests, verbose=True)
+            else:
+                responses = []
+
+            responses_cleaned = clean_api_responses(api_requests, responses)
+            print(responses_cleaned)
+
+            # Immediately cache the valid API responses
+            if responses_cleaned:
+                new_cache_entries = pd.DataFrame(responses_cleaned)
+
+                # Merge the new cache entries with the cache file
+                new_cache_entries = pd.merge(new_cache_entries, non_parcel_hits_df, left_on='query_id',
+                                             right_on='id_num',
+                                             how='left')
+
+                new_cache_entries = new_cache_entries[['placekey', 'street_address', 'city', 'region', 'postal_code']]
+                frames = [new_cache_entries, cache_df]
+                cache_df = pd.concat(frames).drop_duplicates(subset=[ 'street_address', 'city'],
+                                                              keep='first')
+
+                # Save the updated cache file
+                cache_df.to_csv(cache_file_path, index=False)
+                print("Cache updated immediately after API response processing.")
+
+            # Combine cached responses with API responses for further processing
+            all_responses = cached_responses + responses_cleaned
+
+            # Convert to DataFrame using StringIO to avoid future warning
+            df_placekeys = pd.read_json(StringIO(json.dumps(all_responses)), dtype={'query_id': str})
+
+            # Merge the API results with the original non-parcel hits to get complete addresses
+            df_join_placekey = pd.merge(non_parcel_hits_df, df_placekeys, left_on='id_num', right_on='query_id',
+                                        how='left')
+
+            # Log any records that are still missing placekeys after merging
+            missing_placekeys = df_join_placekey['placekey'].isna().sum()
+            if missing_placekeys > 0:
+                print(f"Warning: {missing_placekeys} records are still missing placekeys after the merge.")
+                missing_records_df = df_join_placekey[df_join_placekey['placekey'].isna()]
+                missing_records_df.to_csv("missing_records.csv", index=False)
+                print("Missing records written to 'missing_records.csv' for further analysis.")
+
+            # Update the records with the placekeys from the cache
+            df_join_placekey = update_records_with_placekeys(df_join_placekey, rei)
+
+            # Ensure 'iso_country_code' is carried over
+            df_join_placekey['iso_country_code'] = non_parcel_hits_df['iso_country_code']
+
+            # Drop the id_num and query_id columns
+            df_join_placekey = df_join_placekey.drop(columns=['id_num', 'query_id'])
+
+            # Combine with the records from Parcel number hits
+            if 'parcel_hits_df' in locals() and not parcel_hits_df.empty:
+                df_final = pd.concat([parcel_hits_df, df_join_placekey])
+            else:
+                df_final = df_join_placekey.copy()
+            # Combine with the records from Parcel number hits
+
+            df_final_filtered = filter_franklin_county(df_final, rei)
+
+            # Output the final updated DataFrame
+            df_final_filtered = df_final_filtered.drop_duplicates(subset=['street_address'])
+
+            new_records = df_final_filtered[['placekey', 'street_address', 'city', 'region', 'postal_code']]
+            frames = [new_records, rei]
+            rei = pd.concat(frames).drop_duplicates(subset=['street_address', 'city'],
+                                                         keep='first')
+            rei.to_csv(REI_local_path,index=False)
+            df_final_filtered.rename(columns={'street_address': 'Property Address',
+                                               'city': 'Property City',
+                                               'region': 'Property State',
+                                               'postal_code': 'Property Zip'}, inplace=True)
+
+            print('Summary of results:')
+            total_recs = df_final_filtered.shape[0]
+            print(f'Total records after filtering: {total_recs}')
+            df_final_filtered= df_final_filtered.drop(['placekey'],axis=1)
+            # Provide download link for the updated file
+            csv = df_final_filtered.to_csv(index=False).encode('utf-8')
+            st.download_button("Download Updated File", data=csv, file_name=output_file_name, mime="text/csv")
+
+            # Instruction for moving the file
+            st.markdown("""
+                **Instructions:**
+                - After downloading, you can manually move the file to your desired location.
+                - To move the file, use your file explorer and drag the downloaded file to the preferred folder.
+            """)
     else:
         st.error("Required columns are missing in the uploaded file.")
