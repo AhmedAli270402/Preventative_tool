@@ -857,11 +857,11 @@ if uploaded_file is not None:
 
                 new_cache_entries = new_cache_entries[['placekey', 'street_address', 'city', 'region', 'postal_code']]
                 frames = [new_cache_entries, cache_df]
-                # cache_df = pd.concat(frames).drop_duplicates(subset=[ 'street_address', 'city'],
-                #                                              keep='first')
+                cache_df = pd.concat(frames).drop_duplicates(subset=[ 'street_address', 'city'],
+                                                              keep='first')
 
                 # Save the updated cache file
-                #cache_df.to_csv(cache_file_path, index=False)
+                cache_df.to_csv(cache_file_path, index=False)
                 print("Cache updated immediately after API response processing.")
 
             # Combine cached responses with API responses for further processing
@@ -905,9 +905,9 @@ if uploaded_file is not None:
 
             new_records = df_final_filtered[['placekey', 'street_address', 'city', 'region', 'postal_code']]
             frames = [new_records, rei]
-            # rei = pd.concat(frames).drop_duplicates(subset=['street_address', 'city'],
-            #                                              keep='first')
-            # rei.to_csv(REI_local_path,index=False)
+            rei = pd.concat(frames).drop_duplicates(subset=['street_address', 'city'],
+                                                         keep='first')
+            rei.to_csv(REI_local_path,index=False)
             df_final_filtered.rename(columns={'street_address': 'Property Address',
                                                'city': 'Property City',
                                                'region': 'Property State',
