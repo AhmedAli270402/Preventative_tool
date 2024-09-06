@@ -929,9 +929,9 @@ if uploaded_file is not None:
                 - To move the file, use your file explorer and drag the downloaded file to the preferred folder.
             """)
         if st.button("Fix tag and Standardize"):
-            df.rename(columns={'Number Quality Score 3': 'Phone 3 Tag',
-                                               'Number Quality Score 2': 'Phone 2 tag',
-                                               'Number Quality Score 1': 'Phone 1 Tag',
+            df.rename(columns={'Number Quality Score 3': 'Phone 3 Tags',
+                                               'Number Quality Score 2': 'Phone 2 Tags',
+                                               'Number Quality Score 1': 'Phone 1 Tags',
                                                }, inplace=True)
 
             
