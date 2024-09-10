@@ -61,12 +61,12 @@ cache_df = pd.read_csv(cache_file_path, dtype={
     'Parcel number': str
 })
 def clean_api_responses(data_jsoned, responses):
-    print("Number of original records: ", len(data_jsoned))
-    print('Total individual queries returned: ', len(responses))
+    st.write("Number of original records: ", len(data_jsoned))
+    st.write('Total individual queries returned: ', len(responses))
 
     # Filter out invalid responses
     responses_cleaned = [resp for resp in responses if 'query_id' in resp]
-    print('Total successful query responses: ', len(responses_cleaned))
+    st.write('Total successful query responses: ', len(responses_cleaned))
 
     # Log any missing records for debugging
     missing_records = len(data_jsoned) - len(responses_cleaned)
@@ -91,8 +91,8 @@ def check_cache(data_jsoned, cache_df):
         else:
             api_requests.append(record)
 
-    print(f"Number of records found in cache: {len(cached_responses)}")
-    print(f"Number of records needing API lookup: {len(api_requests)}")
+    st.write(f"Number of records found in cache: {len(cached_responses)}")
+    st.write(f"Number of records needing API lookup: {len(api_requests)}")
 
     return cached_responses, api_requests
 
