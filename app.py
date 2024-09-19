@@ -696,7 +696,12 @@ st.title("Address Normalization and ZIP Code Adjustment")
 # File upload and reading
 uploaded_file = st.file_uploader("Upload your CSV or Excel file", type=['csv', 'xlsx'])
 
-if uploaded_file is not None:
+if uploaded_file is not None:save_path = os.path.join("/tmp", uploaded_file.name)
+    with open(save_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    st.write(f"File {uploaded_file.name} uploaded successfully and saved at {save_path}")
+
     try:
         # Convert the uploaded file to a format that can be used by pandas
         if uploaded_file.name.endswith('.csv'):
