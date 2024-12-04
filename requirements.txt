@@ -57,4 +57,5 @@ openpyxl==3.1.2
 chardet==5.2.0
 dask==2024.6.0
 aiohttp==3.9.5
-placekey==0.0.20
+placekey==0.0.17
+h3==3.7.7
